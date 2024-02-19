@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JQuery - example</title>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      const cell = (value, isHead) => {
+        return $(isHead ? "<th/>" : "<td/>")
+          .addClass("border border-gray-300 p-2 text-wrap")
+          .text(value);
+      };
+      const row = (values, isHead) => {
+        return $("<tr/>").append(values.map((value) => cell(value, isHead)));
+      };
+      const createTable = (data) => {
+        const table = $("<table/>").addClass("border border-gray-300 w-full");
+        table.append(row(["Name", "Description", "Price"], true));
+        Object.values(data).forEach((asset) => {
+          table.append(row([asset.title, asset.description, asset.price]));
+        });
+        return table;
+      };
+      // $(document).ready(function () {
+      //   console.log("Fetching data...");
+      //   fetch("https://dummyjson.com/products")
+      //     .then((response) => response.json())
+      //     .then((data) => {
+      //       console.log("Data is: " + data);
+      //       const tb = createTable(data);
+      //       $("#myTable").append(tb);
+      //     });
+      // });
+      const showProducts = (startIdx, endIdx, data) => {
+        const slicedData = data.slice(startIdx, endIdx);
+
+        const tb = createTable(slicedData);
+        $("#myTable").empty().append(tb);
+      };
+      let currentPage = 1;
+      const itemsPerPage = 10;
+
+      $(document).ready(function () {
+        console.log("Fetching data...");
+        fetch("https://dummyjson.com/products")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Data is:", data);
+            showProducts(0, itemsPerPage, data.products);
+
+            $("#nextPage").on("click", function () {
+              const startIdx = currentPage * itemsPerPage;
+              const endIdx = startIdx + itemsPerPage;
+              if (endIdx <= data.products.length) {
+                currentPage++;
+                showProducts(startIdx, endIdx, data.products);
+              }
+            });
+
+            $("#prevPage").on("click", function () {
+              if (currentPage > 1) {
+                currentPage--;
+                const startIdx = (currentPage - 1) * itemsPerPage;
+                const endIdx = startIdx + itemsPerPage;
+                showProducts(startIdx, endIdx, data.products);
+              }
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="w-[1000px] mx-auto border border-gray-300 p-4 m-4">
+      <h1 class="text-2xl font-bold">Products</h1>
+      <div id="myTable"></div>
+      <button id="prevPage" class="mr-2">Previous</button>
+      <button id="nextPage">Next</button>
+    </div>
+  </body>
+</html>
